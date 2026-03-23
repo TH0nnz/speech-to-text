@@ -1,0 +1,33 @@
+# ============================================================
+#  語音轉文字系統設定檔
+# ============================================================
+
+# --- 模型設定 ---
+model: large-v3           # 可選：tiny / base / small / medium / large-v2 / large-v3
+compute_type: float16     # GPU: float16 | CPU: int8
+
+# --- 語言設定 ---
+language: null            # null=自動偵測 | zh=中文 | en=英文 | zh+en=混合(自動偵測)
+
+# --- 說話人分割 ---
+# HuggingFace Token：請至 https://huggingface.co/settings/tokens 申請
+# 也可透過環境變數 HF_TOKEN 設定（優先使用環境變數）
+hf_token: "YOUR_HF_TOKEN_HERE"
+
+num_speakers: null        # null=自動偵測 | 數字=指定人數（例：3）
+min_speakers: 1           # 最少說話人數（自動偵測時有效）
+max_speakers: 10          # 最多說話人數（自動偵測時有效）
+
+# --- 批次處理設定 ---
+batch_size: 16            # GPU 記憶體不足時可降低（8 或 4）
+
+# --- 輸出格式 ---
+output_formats:
+  - txt
+  - tsv
+  - srt
+  - vtt
+
+# --- 後處理 ---
+merge_consecutive: true   # 合併相鄰同說話人片段
+merge_gap: 1.0            # 同說話人間隔幾秒以內視為同一段（秒）

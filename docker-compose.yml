@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # 自動監控模式：放入 input/ 自動處理
+  # 啟動：docker-compose up -d
+  # ========================================
+  stt:
+    build: .
+    image: speech-to-text:latest
+    container_name: stt-processor
+
+    # NVIDIA GPU 支援
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    volumes:
+      - ./input:/input                          # 放入音訊檔案
+      - ./output:/output                        # 輸出結果
+      - ./config.yml:/app/config.yml            # 設定檔
+      - huggingface_cache:/root/.cache/huggingface  # 模型快取
+      - whisper_cache:/root/.cache/whisper
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - HF_TOKEN=${HF_TOKEN:-}                  # 從 .env 讀取 HuggingFace Token
+
+    command: ["--watch"]
+    restart: unless-stopped
+
+  # ========================================
+  # 手動單一檔案模式
+  # 用法：docker-compose run --rm stt-manual --file /input/meeting.mp3
+  # 用法：docker-compose run --rm stt-manual --batch
+  # ========================================
+  stt-manual:
+    build: .
+    image: speech-to-text:latest
+    profiles: ["manual"]
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    volumes:
+      - ./input:/input
+      - ./output:/output
+      - ./config.yml:/app/config.yml
+      - huggingface_cache:/root/.cache/huggingface
+      - whisper_cache:/root/.cache/whisper
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - HF_TOKEN=${HF_TOKEN:-}
+
+volumes:
+  huggingface_cache:
+  whisper_cache:
