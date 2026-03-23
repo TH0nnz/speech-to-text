@@ -9,6 +9,11 @@ whisperx
 # torchvision 循環 import 問題已由 Dockerfile 預先安裝 torchvision==0.20.1 解決
 pyannote.audio==3.3.2
 
+# huggingface_hub >= 0.23.0 移除了 use_auth_token 參數，
+# 但 pyannote.audio 3.3.2 內部仍以 use_auth_token 呼叫 hf_hub_download()，
+# 需釘住舊版以維持相容性。
+huggingface_hub<0.23.0
+
 # faster-whisper 的隱性依賴（未列在其 setup 中）
 requests>=2.28.0
 

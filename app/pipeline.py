@@ -4,6 +4,8 @@ pipeline.py
 """
 import logging
 import os
+import subprocess
+import tempfile
 from pathlib import Path
 
 from transcriber import transcribe
@@ -20,6 +22,28 @@ def _fmt(seconds: float) -> str:
     m = int((seconds % 3600) // 60)
     s = int(seconds % 60)
     return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def _to_wav(input_path: Path, tmp_dir: str) -> Path:
+    """
+    若輸入檔案不是 WAV，使用 ffmpeg 轉換為 16kHz 單聲道 WAV。
+    ffmpeg 支援的格式（m4a, mp3, ogg 等）都能正確轉換。
+    """
+    if input_path.suffix.lower() == ".wav":
+        return input_path
+    out_path = Path(tmp_dir) / (input_path.stem + ".wav")
+    cmd = [
+        "ffmpeg", "-y", "-i", str(input_path),
+        "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le",
+        str(out_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg 轉換失敗，錯誤輸出：\n{result.stderr}"
+        )
+    logger.info(f"  已將 {input_path.name} 轉換為 WAV：{out_path.name}")
+    return out_path
 
 
 def _is_verbose(config: dict) -> bool:
@@ -47,13 +71,17 @@ def process_file(input_path: str, output_dir: str, config: dict) -> list:
     logger.info(f"  開始處理：{input_path.name}")
     logger.info("=" * 55)
 
-    # ── 步驟 1：語音辨識 ──────────────────────────────────
-    logger.info("📝 [1/3] 語音辨識中...")
-    transcript = transcribe(str(input_path), config)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # 非 WAV 格式先轉換，pyannote.audio 只支援 WAV
+        wav_path = _to_wav(input_path, tmp_dir)
 
-    # ── 步驟 2：說話人分割 ────────────────────────────────
-    logger.info("👥 [2/3] 說話人分割中...")
-    diarization = diarize(str(input_path), config)
+        # ── 步驟 1：語音辨識 ──────────────────────────────────
+        logger.info("📝 [1/3] 語音辨識中...")
+        transcript = transcribe(str(input_path), config)
+
+        # ── 步驟 2：說話人分割 ────────────────────────────────
+        logger.info("👥 [2/3] 說話人分割中...")
+        diarization = diarize(str(wav_path), config)
 
     # ── 步驟 3：對齊合併 ──────────────────────────────────
     logger.info("🔗 [3/3] 對齊說話人與文字...")
