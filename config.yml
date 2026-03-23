@@ -31,3 +31,6 @@ output_formats:
 # --- 後處理 ---
 merge_consecutive: true   # 合併相鄰同說話人片段
 merge_gap: 1.0            # 同說話人間隔幾秒以內視為同一段（秒）
+
+# --- Log 輸出 ---
+verbose_output: true      # true=處理完畢後逐句印出結果 | false=只顯示步驟進度

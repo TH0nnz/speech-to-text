@@ -1,8 +1,16 @@
+# NumPy 2.0 移除了 np.NaN，pyannote.audio 內部仍使用舊 API，需釘住 1.x
+numpy<2.0
+
 # 語音辨識（含字詞級時間戳對齊）
 whisperx
 
 # 說話人分割
+# 3.3.2：修復了 3.1.1 的 tensor size mismatch bug（特定音訊長度會觸發）
+# torchvision 循環 import 問題已由 Dockerfile 預先安裝 torchvision==0.20.1 解決
 pyannote.audio==3.3.2
+
+# faster-whisper 的隱性依賴（未列在其 setup 中）
+requests>=2.28.0
 
 # 資料夾監控
 watchdog>=3.0.0

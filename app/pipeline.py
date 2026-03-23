@@ -14,6 +14,19 @@ from exporters import export_all
 logger = logging.getLogger(__name__)
 
 
+def _fmt(seconds: float) -> str:
+    """將秒數格式化為 HH:MM:SS"""
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def _is_verbose(config: dict) -> bool:
+    """從 config.yml 讀取 verbose_output，預設為 true"""
+    return bool(config.get("verbose_output", True))
+
+
 def process_file(input_path: str, output_dir: str, config: dict) -> list:
     """
     處理單一音訊檔案的完整流程。
@@ -28,6 +41,7 @@ def process_file(input_path: str, output_dir: str, config: dict) -> list:
     """
     input_path = Path(input_path)
     stem = input_path.stem
+    verbose = _is_verbose(config)
 
     logger.info("=" * 55)
     logger.info(f"  開始處理：{input_path.name}")
@@ -44,6 +58,15 @@ def process_file(input_path: str, output_dir: str, config: dict) -> list:
     # ── 步驟 3：對齊合併 ──────────────────────────────────
     logger.info("🔗 [3/3] 對齊說話人與文字...")
     segments = align_speakers(transcript, diarization, config)
+
+    # ── 逐句印出（由 VERBOSE_OUTPUT 控制）────────────────
+    if verbose:
+        logger.info("─" * 55)
+        for seg in segments:
+            start = _fmt(seg["start"])
+            end   = _fmt(seg["end"])
+            logger.info(f"  [{start}-{end}] {seg['speaker']}: {seg['text']}")
+        logger.info("─" * 55)
 
     # ── 輸出檔案 ──────────────────────────────────────────
     logger.info("💾 輸出檔案中...")

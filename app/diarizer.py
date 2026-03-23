@@ -35,7 +35,7 @@ def get_pipeline(config: dict) -> Pipeline:
 
     _pipeline = Pipeline.from_pretrained(
         "pyannote/speaker-diarization-3.1",
-        use_auth_token=hf_token,
+        token=hf_token,          # huggingface_hub 新版：use_auth_token 改為 token
     )
     _pipeline = _pipeline.to(device)
 
