@@ -79,8 +79,38 @@ def align_speakers(transcript: dict, diarization: List[Dict], config: dict) -> L
         gap = float(config.get("merge_gap", 1.0))
         result = _merge_consecutive(result, gap)
 
+    # 依詞語間停頓自動斷句（插入換行）
+    if config.get("pause_break", False):
+        threshold = float(config.get("pause_break_threshold", 0.8))
+        for seg in result:
+            seg["text"] = _break_by_pause(seg.get("words", []), threshold)
+
     logger.info(f"  最終共 {len(result)} 段（合併後）")
     return result
+
+
+def _break_by_pause(words: list, pause_threshold: float) -> str:
+    """
+    依照詞語間的停頓時間自動插入換行符號。
+    當相鄰兩詞之間的間隔 >= pause_threshold 秒時，插入換行。
+    """
+    if not words:
+        return ""
+
+    parts = []
+    for i, w in enumerate(words):
+        word = w.get("word", "").strip()
+        if not word:
+            continue
+        parts.append(word)
+        if i < len(words) - 1:
+            curr_end = w.get("end")
+            next_start = words[i + 1].get("start")
+            if curr_end is not None and next_start is not None:
+                if next_start - curr_end >= pause_threshold:
+                    parts.append("，")
+
+    return "".join(parts)
 
 
 def _merge_consecutive(segments: List[Dict], gap_threshold: float) -> List[Dict]:

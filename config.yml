@@ -16,6 +16,7 @@ hf_token: "YOUR_HF_TOKEN_HERE"
 
 num_speakers: null        # null=自動偵測 | 數字=指定人數（例：3）
 min_speakers: 1           # 最少說話人數（自動偵測時有效）
+
 max_speakers: 10          # 最多說話人數（自動偵測時有效）
 
 # --- 批次處理設定 ---
@@ -30,7 +31,10 @@ output_formats:
 
 # --- 後處理 ---
 merge_consecutive: true   # 合併相鄰同說話人片段
-merge_gap: 1.0            # 同說話人間隔幾秒以內視為同一段（秒）
+merge_gap: 0.8         # 同說話人間隔幾秒以內視為同一段（秒）
+
+pause_break: true         # 依詞語間停頓自動斷句（插入換行）
+pause_break_threshold: 0.3  # 停頓超過幾秒視為斷句（秒）
 
 # --- Log 輸出 ---
 verbose_output: true      # true=處理完畢後逐句印出結果 | false=只顯示步驟進度

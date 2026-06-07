@@ -4,6 +4,7 @@ pipeline.py
 """
 import logging
 import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -96,10 +97,21 @@ def process_file(input_path: str, output_dir: str, config: dict) -> list:
             logger.info(f"  [{start}-{end}] {seg['speaker']}: {seg['text']}")
         logger.info("─" * 55)
 
+    # ── 建立輸出子目錄：output/<stem>/ ─────────────────────
+    file_output_dir = Path(output_dir) / stem
+    source_dir = file_output_dir / "source"
+    file_output_dir.mkdir(parents=True, exist_ok=True)
+    source_dir.mkdir(parents=True, exist_ok=True)
+
     # ── 輸出檔案 ──────────────────────────────────────────
     logger.info("💾 輸出檔案中...")
-    output_base = os.path.join(output_dir, stem)
+    output_base = str(file_output_dir / stem)
     export_all(segments, output_base, config)
 
-    logger.info(f"✅ 完成！輸出目錄：{output_dir}/")
+    # ── 搬移原始檔案至 source/ ────────────────────────────
+    dest = source_dir / input_path.name
+    shutil.move(str(input_path), str(dest))
+    logger.info(f"  原始檔案已移至：{dest}")
+
+    logger.info(f"✅ 完成！輸出目錄：{file_output_dir}/")
     return segments

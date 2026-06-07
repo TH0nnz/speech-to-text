@@ -1,4 +1,4 @@
-# NumPy 2.0 移除了 np.NaN，pyannote.audio 內部仍使用舊 API，需釘住 1.x
+               # NumPy 2.0 移除了 np.NaN，pyannote.audio 內部仍使用舊 API，需釘住 1.x
 numpy<2.0
 
 # 語音辨識（含字詞級時間戳對齊）
